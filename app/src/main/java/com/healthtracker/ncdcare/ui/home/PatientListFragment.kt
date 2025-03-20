@@ -3,6 +3,7 @@ package com.healthtracker.ncdcare.ui.home
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -23,17 +24,27 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.material.search.SearchView
 import com.healthtracker.ncdcare.MainActivity
 import com.healthtracker.ncdcare.R
-import com.healthtracker.ncdcare.databinding.FragmentHomeBinding
 import com.healthtracker.ncdcare.databinding.FragmentPatientListViewBinding
 import kotlinx.coroutines.launch
 
+/**
+ * A Fragment that displays a list of patients and provides search functionality.
+ *
+ * This fragment initializes and manages a RecyclerView to display patient data,
+ * a SearchView for searching patients by name, and observes various LiveData
+ * from the ViewModel to update the UI accordingly. It also handles menu actions
+ * for syncing and updating patient data.
+ */
 class PatientListFragment : Fragment() {
 
     private lateinit var searchView: SearchView
+    private lateinit var noResultsTextView: TextView
     private var _binding: FragmentPatientListViewBinding? = null
 
     // This property is only valid between onCreateView and
@@ -41,6 +52,11 @@ class PatientListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val patientAdapter = PatientItemRecyclerViewAdapter()
+    private val searchResultsAdapter = PatientItemRecyclerViewAdapter().apply {
+        setOnItemClickListener { patient ->
+            Toast.makeText(requireContext(), patient.name.firstOrNull().let { it?.given?.firstOrNull().toString() }, Toast.LENGTH_SHORT).show()
+        }
+    }
     private val viewModel: PatientListViewModel by viewModels()
 
     override fun onCreateView(
@@ -75,6 +91,20 @@ class PatientListFragment : Fragment() {
 
         viewModel.liveSearchedPatients.observe(viewLifecycleOwner) { searchedPatients ->
             patientAdapter.submitList(searchedPatients)
+            searchResultsAdapter.submitList(searchedPatients)
+
+            if (this::noResultsTextView.isInitialized) {
+                val searchTerm = viewModel.currentSearchTerm.value ?: ""
+                val showNoResults = searchTerm.isNotEmpty() && searchedPatients.isEmpty()
+                noResultsTextView.visibility = if (showNoResults) View.VISIBLE else View.GONE
+            }
+        }
+
+        // Observe the current search term and update the search view
+        viewModel.currentSearchTerm.observe(viewLifecycleOwner) { searchTerm ->
+            if (this::searchView.isInitialized && searchView.editText.text.toString() != searchTerm) {
+                searchView.editText.setText(searchTerm)
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -139,19 +169,62 @@ class PatientListFragment : Fragment() {
 
     private fun initSearchView() {
         (requireActivity() as MainActivity).getSearchView { searchView ->
+            this.searchView = searchView
+
+            val searchResultsRecyclerView = RecyclerView(requireContext()).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+                layoutManager = LinearLayoutManager(context)
+                adapter = searchResultsAdapter
+                setPadding(16, 16, 16, 16)
+                clipToPadding = false
+            }
+
+            noResultsTextView = TextView(requireContext()).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+                gravity = Gravity.CENTER_HORIZONTAL
+                setTextAppearance(android.R.style.TextAppearance_Material_Body2)
+                text = "No patients found"
+                textSize = 16f
+                visibility = View.GONE
+                setPadding(16, 64, 16, 16)
+            }
+
+            val searchContentContainer = searchView.findViewById<ViewGroup>(com.google.android.material.R.id.open_search_view_content_container)
+            searchContentContainer.addView(searchResultsRecyclerView)
+            searchContentContainer.addView(noResultsTextView)
+
             // Set up the Material SearchView
-//            searchView.editText.setOnEditorActionListener { textView, actionId, keyEvent ->
-//                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-//                    val query = textView.text.toString()
-//                    viewModel.searchPatientsByName(query)
-//                    return@setOnEditorActionListener true
-//                }
-//                false
-//            }
+            searchView.editText.setOnEditorActionListener { textView, actionId, keyEvent ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    val query = textView.text.toString()
+                    viewModel.searchPatientsByName(query)
+                    // Hide keyboard after search
+                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(textView.windowToken, 0)
+                    return@setOnEditorActionListener true
+                }
+                false
+            }
+
+            // Initialize search view with current search term if available
+            viewModel.currentSearchTerm.value?.let { currentTerm ->
+                if (currentTerm.isNotEmpty() && searchView.editText.text.toString() != currentTerm) {
+                    searchView.editText.setText(currentTerm)
+                }
+            }
 
             // Listen for text changes
             searchView.editText.doOnTextChanged { text, _, _, _ ->
-                viewModel.searchPatientsByName(text?.toString() ?: "")
+                val newText = text?.toString() ?: ""
+                if (viewModel.currentSearchTerm.value != newText) {
+                    viewModel.searchPatientsByName(newText)
+                }
             }
 
             // Handle search view state changes
@@ -169,9 +242,11 @@ class PatientListFragment : Fragment() {
                     SearchView.TransitionState.HIDDEN -> {
                         // SearchView is fully hidden
                         viewModel.searchPatientsByName("")
+                        noResultsTextView.visibility = View.GONE
                     }
                 }
             }
+
             requireActivity()
                 .onBackPressedDispatcher
                 .addCallback(
