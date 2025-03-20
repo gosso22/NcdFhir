@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.App.SearchBar" parent="Widget.Material3.SearchBar">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.SearchBar</item>
+    </style>
+
+    <style name="ThemeOverlay.App.SearchBar" parent="">
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+    </style>
+</resources>
