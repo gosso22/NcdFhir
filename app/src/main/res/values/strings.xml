@@ -17,4 +17,5 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="menu_referral">Referral</string>
     <string name="screening_icon">Screening icon</string>
+    <string name="title_activity_patient_profile_view">PatientProfileView</string>
 </resources>

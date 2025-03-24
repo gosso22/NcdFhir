@@ -1,6 +1,7 @@
 package com.healthtracker.ncdcare.ui.home
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -31,7 +32,9 @@ import com.google.android.material.search.SearchView
 import com.healthtracker.ncdcare.MainActivity
 import com.healthtracker.ncdcare.R
 import com.healthtracker.ncdcare.databinding.FragmentPatientListViewBinding
+import com.healthtracker.ncdcare.ui.profile.PatientProfileView
 import kotlinx.coroutines.launch
+import kotlin.jvm.java
 
 /**
  * A Fragment that displays a list of patients and provides search functionality.
@@ -54,7 +57,10 @@ class PatientListFragment : Fragment() {
     private val patientAdapter = PatientItemRecyclerViewAdapter()
     private val searchResultsAdapter = PatientItemRecyclerViewAdapter().apply {
         setOnItemClickListener { patient ->
-            Toast.makeText(requireContext(), patient.name.firstOrNull().let { it?.given?.firstOrNull().toString() }, Toast.LENGTH_SHORT).show()
+            val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
+                putExtra(PatientProfileView.EXTRA_NAME, patient.name.firstOrNull()?.text)
+            }
+            startActivity(intent)
         }
     }
     private val viewModel: PatientListViewModel by viewModels()
@@ -64,8 +70,7 @@ class PatientListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
+        ViewModelProvider(this).get(HomeViewModel::class.java)
 
         _binding = FragmentPatientListViewBinding.inflate(inflater, container, false)
         val root: View = binding.root
