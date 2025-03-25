@@ -55,14 +55,7 @@ class PatientListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val patientAdapter = PatientItemRecyclerViewAdapter()
-    private val searchResultsAdapter = PatientItemRecyclerViewAdapter().apply {
-        setOnItemClickListener { patient ->
-            val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
-                putExtra(PatientProfileView.EXTRA_NAME, patient.name.firstOrNull()?.text)
-            }
-            startActivity(intent)
-        }
-    }
+    private val searchResultsAdapter = PatientItemRecyclerViewAdapter()
     private val viewModel: PatientListViewModel by viewModels()
 
     override fun onCreateView(
@@ -117,6 +110,22 @@ class PatientListFragment : Fragment() {
                 // Show the user a message when the sync is finished and then refresh the list of patients
                 // on the UI by sending a search patient request
                 viewModel.pollState.collect { handleSyncJobStatus(it) }
+            }
+        }
+
+        patientAdapter.setOnItemClickListener { patient ->
+            val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
+                putExtra(PatientProfileView.EXTRA_NAME, patient)
+            }
+            startActivity(intent)
+        }
+
+        searchResultsAdapter.apply {
+            setOnItemClickListener { patient ->
+                val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
+                    putExtra(PatientProfileView.EXTRA_NAME, patient)
+                }
+                startActivity(intent)
             }
         }
     }
