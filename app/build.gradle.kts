@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.03.00"))
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
 
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
