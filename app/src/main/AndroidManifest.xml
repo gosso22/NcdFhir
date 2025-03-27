@@ -21,11 +21,10 @@
             android:name=".ui.profile.PatientProfileView"
             android:exported="false"
             android:label="@string/title_activity_patient_profile_view"
-            android:theme="@style/Theme.NcdFhirApplication" />
+            android:theme="@style/Theme.NcdFhirApplication.NoActionBar" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.NcdFhirApplication.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

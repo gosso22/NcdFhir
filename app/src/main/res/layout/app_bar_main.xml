@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:theme="@style/Theme.NcdFhirApplication.AppBarOverlay">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -28,9 +28,7 @@
             android:hint="Search..."
             app:backgroundTint="#82ADF6"
             app:navigationIconTint="?attr/colorOnSurface" />
-
-        </androidx.appcompat.widget.Toolbar>
-
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.search.SearchView
