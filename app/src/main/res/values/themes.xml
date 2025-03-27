@@ -2,24 +2,34 @@
     <!-- Base application theme. -->
     <style name="Theme.NcdFhirApplication" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#6495ED</item>
-        <item name="colorPrimaryVariant">#97C4FF</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">#FF9100</item>
-        <item name="colorSecondaryVariant">#FFC246</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.NcdFhirApplication.NoActionBar">
+    <style name="Theme.NcdFhirApplication.NoActionBar" parent="Theme.NcdFhirApplication">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#000000</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
 
-    <style name="Theme.NcdFhirApplication.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.NcdFhirApplication.AppBarOverlay" parent="ThemeOverlay.Material3.Dark.ActionBar" />
 
-    <style name="Theme.NcdFhirApplication.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.NcdFhirApplication.PopupOverlay" parent="ThemeOverlay.Material3.Light">
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#000000</item>
+        <item name="colorPrimary">#6495ED</item>
+        <item name="colorPrimaryVariant">#97C4FF</item>
+        <item name="android:itemBackground">#FFFFFF</item>
+        <item name="android:textColorPrimary">#000000</item>
+    </style>
 </resources>

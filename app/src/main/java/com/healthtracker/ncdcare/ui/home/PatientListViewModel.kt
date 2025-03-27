@@ -3,6 +3,7 @@ package com.healthtracker.ncdcare.ui.home
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,6 +38,10 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
     // Error state
     private val _error = MutableLiveData<String?>(null)
     val error: MutableLiveData<String?> get() = _error
+
+    // Track current search term
+    private val _currentSearchTerm = MutableLiveData<String>("")
+    val currentSearchTerm: LiveData<String> get() = _currentSearchTerm
 
     val liveSearchedPatients = MutableLiveData<List<Patient>>()
 
@@ -99,6 +104,9 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
     }
 
     fun searchPatientsByName(nameQuery: String) {
+        // Update the current search term
+        _currentSearchTerm.value = nameQuery
+
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -115,6 +123,9 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
                         )
                     }
                     liveSearchedPatients.value = searchResults.map { it.resource }
+                } else {
+                    // If search term is empty, load all patients
+                    updatePatientList { getSearchResults() }
                 }
             } catch (e: Exception) {
                 _error.value = "Search failed: ${e.message}"

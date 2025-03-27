@@ -10,6 +10,11 @@ import org.hl7.fhir.r4.model.Patient
 class PatientItemRecyclerViewAdapter :
     ListAdapter<Patient, PatientItemViewHolder>(PatientItemDiffCallback()) {
 
+    private var onItemClickListener: ((Patient) -> Unit)? = null
+    fun setOnItemClickListener(listener: (Patient) -> Unit) {
+        onItemClickListener = listener
+    }
+
     class PatientItemDiffCallback : DiffUtil.ItemCallback<Patient>() {
         override fun areItemsTheSame(oldItem: Patient, newItem: Patient) = oldItem.id == newItem.id
 
@@ -24,8 +29,13 @@ class PatientItemRecyclerViewAdapter :
             PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
     }
+
     override fun onBindViewHolder(holder: PatientItemViewHolder, position: Int) {
         val item = currentList[position]
         holder.bind(item)
+
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.invoke(item)
+        }
     }
 }
