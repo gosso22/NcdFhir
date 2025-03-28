@@ -50,25 +50,26 @@ android {
 
 dependencies {
 
-    implementation(platform("androidx.compose:compose-bom:2025.03.00"))
+    implementation(libs.androidx.compose.bom.v20250300)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
-    androidTestImplementation(platform("androidx.compose:compose-bom:2025.03.00"))
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
+    implementation(libs.androidx.datastore.preferences)
+    androidTestImplementation(libs.androidx.compose.bom.v20250300)
+    implementation(libs.material3)
+    implementation(libs.androidx.ui.text.google.fonts)
 
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation(libs.ui.tooling.preview)
+    debugImplementation(libs.ui.tooling)
 
     // UI Tests
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation(libs.ui.test.junit4)
+    debugImplementation(libs.ui.test.manifest)
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
-    implementation("com.google.android.fhir:engine:1.1.0")
-    implementation("com.google.android.material:material:1.9.0")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation(libs.engine)
+    implementation(libs.material.v190)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
