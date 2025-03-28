@@ -1,6 +1,7 @@
 package com.healthtracker.ncdcare.ui.home
 
 import android.app.Application
+import android.text.format.DateFormat
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 class PatientListViewModel (application: Application) : AndroidViewModel(application) {
 
@@ -44,6 +47,10 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
     val currentSearchTerm: LiveData<String> get() = _currentSearchTerm
 
     val liveSearchedPatients = MutableLiveData<List<Patient>>()
+
+    private val _lastSyncTimestampLiveData = MutableLiveData<String>()
+    val lastSyncTimestampLiveData: LiveData<String>
+        get() = _lastSyncTimestampLiveData
 
     init {
         updatePatientList { getSearchResults() }
@@ -69,6 +76,7 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
                                 _isSyncing.value = false
                                 // Refresh patient list after sync completes
                                 updatePatientList { getSearchResults() }
+                                updateLastSyncTimestamp(status.timestamp)
                             }
                             is CurrentSyncJobStatus.Failed -> {
                                 _error.value = "Sync failed"
@@ -122,6 +130,9 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
                             },
                         )
                     }
+                        .filter { patient ->
+                            !patient.resource.name.any { it.family?.contains("Family") == true }
+                        }
                     liveSearchedPatients.value = searchResults.map { it.resource }
                 } else {
                     // If search term is empty, load all patients
@@ -148,8 +159,6 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
                 _isLoading.value = true
                 _error.value = null
 
-                delay(300)
-
                 liveSearchedPatients.value = search()
             } catch (e: Exception) {
                 _error.value = "Failed to load patients: ${e.message}"
@@ -163,6 +172,9 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
         val patients: MutableList<Patient> = mutableListOf()
         NcdFhirApplication.fhirEngine(this.getApplication())
             .search<Patient> { sort(Patient.GIVEN, Order.ASCENDING) }
+            .filter { patient ->
+                !patient.resource.name.any { it.family?.contains("Family") == true }
+            }
             .let { patients.addAll(it.map { it.resource }) }
         return patients
     }
@@ -172,5 +184,20 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
         super.onCleared()
         _isLoading.value = false
         _isSyncing.value = false
+    }
+
+    fun updateLastSyncTimestamp(lastSync: OffsetDateTime? = null) {
+        val formatter =
+            DateTimeFormatter.ofPattern(
+                if (DateFormat.is24HourFormat(getApplication())) formatString24 else formatString12,
+            )
+        _lastSyncTimestampLiveData.value =
+            lastSync?.let { it.toLocalDateTime()?.format(formatter) ?: "" }
+                ?: Sync.getLastSyncTimestamp(getApplication())?.toLocalDateTime()?.format(formatter) ?: ""
+    }
+
+    companion object {
+        private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
+        private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
     }
 }

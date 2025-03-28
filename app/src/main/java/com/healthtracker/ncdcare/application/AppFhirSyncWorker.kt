@@ -13,7 +13,7 @@ class AppFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override fun getConflictResolver() = AcceptLocalConflictResolver
 
-    override fun getDownloadWorkManager() = DownloadWorkManagerImpl()
+    override fun getDownloadWorkManager() = DownloadWorkManagerImpl(NcdFhirApplication.dataStore(applicationContext))
 
     override fun getFhirEngine() = NcdFhirApplication.fhirEngine(applicationContext)
 
