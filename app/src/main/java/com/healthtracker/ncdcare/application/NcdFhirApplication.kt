@@ -10,10 +10,13 @@ import com.google.android.fhir.FhirEngineProvider
 import com.google.android.fhir.ServerConfiguration
 import com.google.android.fhir.sync.remote.HttpLogger
 import com.healthtracker.ncdcare.BuildConfig
+import com.healthtracker.ncdcare.NcdAppDataStore
 
 class NcdFhirApplication: Application() {
 
     private val fhirEngine: FhirEngine by lazy { FhirEngineProvider.getInstance(this) }
+
+    private val dataStore by lazy { NcdAppDataStore(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -40,5 +43,8 @@ class NcdFhirApplication: Application() {
     companion object {
         fun fhirEngine(context: Context): FhirEngine =
             (context.applicationContext as NcdFhirApplication).fhirEngine
+
+        fun dataStore(context: Context) =
+            (context.applicationContext as NcdFhirApplication).dataStore
     }
 }
