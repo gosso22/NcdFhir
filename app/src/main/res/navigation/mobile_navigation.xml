@@ -3,13 +3,66 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/nav_home"
+    android:label="MainNavGraph">
+
 
     <fragment
         android:id="@+id/nav_home"
         android:name="com.healthtracker.ncdcare.ui.home.PatientListFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_patient_list_view" />
+        tools:layout="@layout/fragment_patient_list_view">
+
+        <action
+            android:id="@+id/action_patientListFragment_to_patientProfileFragment"
+            app:destination="@id/patientProfileFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/patientProfileFragment"
+        android:name="com.healthtracker.ncdcare.ui.home.PatientProfileFragment"
+        tools:layout="@layout/fragment_patient_profile">
+
+        <argument
+            android:name="patient"
+            app:argType="org.hl7.fhir.r4.model.Patient"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <action
+            android:id="@+id/action_patientProfile_to_screening"
+            app:destination="@id/nav_patient_screening"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_patient_screening"
+        android:name="com.healthtracker.ncdcare.ui.screening.ScreeningFragment"
+        android:label="ScreeningFragment"
+        tools:layout="@layout/fragment_container_questionnaire">
+
+        <argument android:name="questionnaireTitleKey" app:argType="string" />
+        <argument
+            android:name="questionnaireUriString"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"
+            />
+        <argument
+            android:name="questionnaireWithValidationJsonStringKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"
+            />
+        <argument
+            android:name="patientId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"
+            />
+
+    </fragment>
 
     <fragment
         android:id="@+id/nav_screening"
@@ -21,5 +74,34 @@
         android:id="@+id/nav_slideshow"
         android:name="com.healthtracker.ncdcare.ui.slideshow.SlideshowFragment"
         android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_slideshow">
+
+        <argument android:name="questionnaireTitleKey" app:argType="string" />
+        <argument
+            android:name="questionnaireJsonStringKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"
+            />
+        <argument
+            android:name="questionnaireWithValidationJsonStringKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"
+            />
+<!--        <action
+            android:id="@+id/action_galleryQuestionnaireFragment_to_questionnaireResponseFragment"
+            app:destination="@id/questionnaireResponseFragment"
+            />
+        <action
+            android:id="@+id/action_galleryQuestionnaireFragment_to_modalBottomSheet"
+            app:destination="@id/modalBottomSheet"
+            />-->
+
+    </fragment>
+
+    <action
+        android:id="@+id/action_global_nav_slideshow"
+        app:destination="@id/nav_slideshow"/>
+
 </navigation>

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -50,15 +51,18 @@ android {
 
 dependencies {
 
-    implementation(libs.androidx.compose.bom.v20250300)
+    implementation(platform(libs.androidx.compose.bom.v20250300))
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.datastore.preferences)
-    androidTestImplementation(libs.androidx.compose.bom.v20250300)
+    androidTestImplementation(platform(libs.androidx.compose.bom.v20250300))
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.material3)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.kotlinx.coroutines.playservices)
+    implementation(libs.play.services.location)
 
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)
@@ -69,15 +73,19 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.engine)
+    implementation(libs.data.capture)
     implementation(libs.material.v190)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.appcompat.v161)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.glide)
     implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

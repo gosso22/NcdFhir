@@ -18,4 +18,10 @@
     <string name="menu_referral">Referral</string>
     <string name="screening_icon">Screening icon</string>
     <string name="title_activity_patient_profile_view">PatientProfileView</string>
+    <string name="submit">Submit</string>
+    <string name="inputs_missing">Inputs are missing.</string>
+    <string name="resources_saved">Resources are saved.</string>
+    <string name="cancel_questionnaire_message">Are you sure you want to discard the answers?</string>
+    <string name="record_gps_location">Record GPS Location</string>
+    <string name="screening_questionnaire_title">Screening for NCD</string>
 </resources>

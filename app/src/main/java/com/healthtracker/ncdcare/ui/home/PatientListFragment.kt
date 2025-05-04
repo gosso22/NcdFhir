@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -34,6 +35,7 @@ import com.healthtracker.ncdcare.R
 import com.healthtracker.ncdcare.databinding.FragmentPatientListViewBinding
 import com.healthtracker.ncdcare.ui.profile.PatientProfileView
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Patient
 import kotlin.jvm.java
 
 /**
@@ -114,21 +116,34 @@ class PatientListFragment : Fragment() {
         }
 
         patientAdapter.setOnItemClickListener { patient ->
-            val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
-                putExtra(PatientProfileView.EXTRA_NAME, patient)
-            }
-            startActivity(intent)
+            navigateToScreening(patient)
         }
 
-        searchResultsAdapter.apply {
-            setOnItemClickListener { patient ->
-                val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
-                    putExtra(PatientProfileView.EXTRA_NAME, patient)
-                }
-                startActivity(intent)
+        searchResultsAdapter.setOnItemClickListener { patient ->
+            requireActivity().runOnUiThread {
+                navigateToScreening(patient)
             }
         }
     }
+
+    private fun navigateToScreening(patient: Patient) {
+        val navController = findNavController()
+        val currentDestinationId = navController.currentDestination?.id
+
+        Log.d("NavigationDebug", "Attempting to navigate from $currentDestinationId")
+
+        if (currentDestinationId == R.id.patientProfileFragment || currentDestinationId == R.id.nav_home) {
+            if (this::searchView.isInitialized) {
+                searchView.hide()
+                searchView.editText.setText("")
+            }
+            val action = PatientListFragmentDirections.actionPatientListFragmentToPatientProfileFragment(patient)
+            navController.navigate(action)
+        } else {
+            Log.e("NavigationError", "Invalid navigation attempt from $currentDestinationId")
+        }
+    }
+
 
     private fun handleSyncJobStatus(syncJobStatus: CurrentSyncJobStatus) {
         // Add code to display Toast when sync job  is complete
@@ -136,12 +151,15 @@ class PatientListFragment : Fragment() {
             is CurrentSyncJobStatus.Enqueued -> {
                 Log.d("Sync", "Sync Job Enqueued")
             }
+
             is CurrentSyncJobStatus.Running -> {
                 Log.d("Sync", "Sync Job Running")
             }
+
             is CurrentSyncJobStatus.Failed -> {
                 Log.e("Sync", "Sync Job Failed")
             }
+
             is CurrentSyncJobStatus.Succeeded -> {
                 Toast.makeText(requireContext(), "Sync Finished", Toast.LENGTH_SHORT).show()
                 viewModel.searchPatientsByName("")
@@ -209,7 +227,8 @@ class PatientListFragment : Fragment() {
                 setPadding(16, 64, 16, 16)
             }
 
-            val searchContentContainer = searchView.findViewById<ViewGroup>(com.google.android.material.R.id.open_search_view_content_container)
+            val searchContentContainer =
+                searchView.findViewById<ViewGroup>(com.google.android.material.R.id.open_search_view_content_container)
             searchContentContainer.addView(searchResultsRecyclerView)
             searchContentContainer.addView(noResultsTextView)
 
@@ -219,7 +238,8 @@ class PatientListFragment : Fragment() {
                     val query = textView.text.toString()
                     viewModel.searchPatientsByName(query)
                     // Hide keyboard after search
-                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    val imm =
+                        requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(textView.windowToken, 0)
                     return@setOnEditorActionListener true
                 }
@@ -247,12 +267,15 @@ class PatientListFragment : Fragment() {
                     SearchView.TransitionState.SHOWING -> {
                         // SearchView is being shown
                     }
+
                     SearchView.TransitionState.SHOWN -> {
                         // SearchView is fully visible
                     }
+
                     SearchView.TransitionState.HIDING -> {
                         // SearchView is being hidden
                     }
+
                     SearchView.TransitionState.HIDDEN -> {
                         // SearchView is fully hidden
                         viewModel.searchPatientsByName("")

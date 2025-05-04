@@ -25,7 +25,7 @@ import org.hl7.fhir.r4.model.Patient
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
-class PatientListViewModel (application: Application) : AndroidViewModel(application) {
+class PatientListViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
     val pollState: Flow<CurrentSyncJobStatus> get() = _pollState
@@ -69,18 +69,22 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
                             is CurrentSyncJobStatus.Enqueued -> {
                                 Log.d("Sync", "Sync job enqueued")
                             }
+
                             is CurrentSyncJobStatus.Running -> {
                                 Log.d("Sync", "Sync job running: ${status.inProgressSyncJob}")
                             }
+
                             is CurrentSyncJobStatus.Succeeded -> {
                                 _isSyncing.value = false
                                 // Refresh patient list after sync completes
                                 updatePatientList { getSearchResults() }
                                 updateLastSyncTimestamp(status.timestamp)
                             }
+
                             is CurrentSyncJobStatus.Failed -> {
                                 _error.value = "Sync failed"
                             }
+
                             else -> {
                                 Log.d("Sync", "Sync job status: $status")
                             }
@@ -172,8 +176,10 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
         val patients: MutableList<Patient> = mutableListOf()
         NcdFhirApplication.fhirEngine(this.getApplication())
             .search<Patient> { sort(Patient.GIVEN, Order.ASCENDING) }
-            .filter { patient ->
-                !patient.resource.name.any { it.family?.contains("Family") == true }
+            .filterNot { patient ->
+                patient.resource.name.any { name ->
+                    name.family?.contains("Family") == true || name.family?.contains("0") == true
+                }
             }
             .let { patients.addAll(it.map { it.resource }) }
         return patients
@@ -193,7 +199,8 @@ class PatientListViewModel (application: Application) : AndroidViewModel(applica
             )
         _lastSyncTimestampLiveData.value =
             lastSync?.let { it.toLocalDateTime()?.format(formatter) ?: "" }
-                ?: Sync.getLastSyncTimestamp(getApplication())?.toLocalDateTime()?.format(formatter) ?: ""
+                ?: Sync.getLastSyncTimestamp(getApplication())?.toLocalDateTime()?.format(formatter)
+                        ?: ""
     }
 
     companion object {
