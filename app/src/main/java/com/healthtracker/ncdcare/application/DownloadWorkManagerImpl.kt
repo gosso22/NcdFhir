@@ -18,7 +18,7 @@ import java.util.Locale
 
 class DownloadWorkManagerImpl(private val dataStore: NcdAppDataStore) : DownloadWorkManager {
     private val resourceTypeList = ResourceType.entries.map { it.name }
-    private val urls = LinkedList(listOf("Patient"))
+    private val urls = LinkedList(listOf("Patient", "Observation"))
 
     override suspend fun getNextRequest(): DownloadRequest? {
         var url = urls.poll() ?: return null

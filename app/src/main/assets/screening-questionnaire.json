@@ -1,0 +1,580 @@
+{
+  "title": "Screener",
+  "status": "active",
+  "version": "0.0.1",
+  "publisher": "Kassim Sheghembe (ksheghembe@d-tree.org)",
+  "resourceType": "Questionnaire",
+  "subjectType": [
+    "Encounter"
+  ],
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.d-tree.org/StructureMap/ScreenerExtractionMap"
+    }
+  ],
+  "item": [
+    {
+      "text": "Demographic and Anthropometric Factors.",
+      "linkId": "1.0.0",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "patientAge",
+          "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+          "code": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "105727008"
+            }
+          ],
+          "text": "Please specify the patient's age?",
+          "type": "choice",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ],
+                "text": "Drop down"
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "age-0",
+                "display": "Under 45",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 0
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "age-2",
+                "display": "45-54 years",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 2
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "age-3",
+                "display": "55-64 years",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 3
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "age-4",
+                "display": "Over 64",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 4
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "bmi",
+          "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+          "code": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "60621009"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ],
+                "text": "Drop down"
+              }
+            }
+          ],
+          "text": "Please specify the patient's BMI (Kg/m²)?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "less-than-25",
+                "display": "Lower than 25 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 0
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "25-30",
+                "display": "25-30 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 2
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "higher-than-30",
+                "display": "Higher than 30 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 3
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "waistCircumference",
+          "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+          "code": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "276361009"
+            }
+          ],
+          "text": "Please specify the patient's waist circumference?",
+          "type": "integer",
+          "required": true,
+          "answerValueSet": "http://hl7belgium.org/profiles/fhir/manzana/ValueSet/vs-findRisc-screening-waistCircumference"
+        }
+      ]
+    },
+    {
+      "text": "Medical History and Existing Conditions",
+      "linkId": "2.0.0",
+      "type": "group",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "2.1.0",
+          "type": "group",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Observation",
+                "name": "highBloodPressure"
+              }
+            }
+          ],
+          "item": [
+            {
+              "linkId": "2.2.1",
+              "type": "group",
+              "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+              "item": [
+                {
+                  "linkId": "medication-highBloodPressure",
+                  "text": "Has the patient ever used drugs for high blood pressure?",
+                  "type": "choice",
+                  "required": true,
+                  "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept.coding",
+                  "code": [
+                    {
+                      "system": "http://snomed.info/sct",
+                      "code": "276361009"
+                    }
+                  ],
+                  "extension": [
+                    {
+                      "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/questionnaire-item-control",
+                            "code": "drop-down",
+                            "display": "Drop down"
+                          }
+                        ],
+                        "text": "Drop down"
+                      }
+                    }
+                  ],
+                  "answerOption": [
+                    {
+                      "valueCoding": {
+                        "code": "yes",
+                        "display": "Yes"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "no",
+                        "display": "No"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "2.2.0",
+          "type": "group",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Observation",
+                "name": "highBloodGlucose"
+              }
+            }
+          ],
+          "item": [
+            {
+              "linkId": "2.1.1",
+              "type": "group",
+              "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+              "item": [
+                {
+                  "text": "Does the customer have a history of high blood glucose?",
+                  "linkId": "history-highBloodGlucose",
+                  "type": "choice",
+                  "code": {
+                    "system": "http://snomed.info/sct",
+                    "code": "80394007"
+                  },
+                  "required": true,
+                  "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept.coding",
+                  "extension": [
+                    {
+                      "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/questionnaire-item-control",
+                            "code": "drop-down",
+                            "display": "Drop down"
+                          }
+                        ],
+                        "text": "Drop down"
+                      }
+                    }
+                  ],
+                  "answerOption": [
+                    {
+                      "valueCoding": {
+                        "code": "373066001",
+                        "display": "Yes",
+                        "system": "http://snomed.info/sct"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "373067005",
+                        "display": "No",
+                        "system": "http://snomed.info/sct"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "261665006",
+                        "display": "Unknown",
+                        "system": "http://snomed.info/sct"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Lifestyle Factors",
+      "type": "group",
+      "linkId": "3.0.0",
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "page",
+                "display": "Page"
+              }
+            ],
+            "text": "Page"
+          }
+        }
+      ],
+      "item": [
+        {
+          "linkId": "physical-activity",
+          "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+          "type": "choice",
+          "repeats": true,
+          "text": "How much physical activity does the patient do?",
+          "code": [],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "check-box",
+                    "display": "Checkbox"
+                  }
+                ],
+                "text": "Checkbox"
+              }
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "161527007",
+                "display": "High (more than 5 times of vigorous exercise)",
+                "system": "http://snomed.info/sct"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "13645005",
+                "display": "Moderate (moderately 2 to 3 times",
+                "system": "http://snomed.info/sct"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "35489007",
+                "display": "Low (light activities 1 to 2 times",
+                "system": "http://snomed.info/sct"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "161445009",
+                "display": "No exercise at all",
+                "system": "http://snomed.info/sct"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "3.9.0",
+          "type": "group",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Observation",
+                "name": "dietLifeStyle"
+              }
+            }
+          ],
+          "item": [
+            {
+              "linkId": "3.9.1",
+              "type": "group",
+              "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+              "item": [
+                {
+                  "text": "Does the patient consume daily vegetables, fruits, or berries?",
+                  "linkId": "daily-consume-veg-fruit",
+                  "type": "choice",
+                  "code": {
+                    "system": "http://snomed.info/sct",
+                    "code": "80394007"
+                  },
+                  "required": true,
+                  "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept.coding",
+                  "extension": [
+                    {
+                      "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/questionnaire-item-control",
+                            "code": "drop-down",
+                            "display": "Drop down"
+                          }
+                        ],
+                        "text": "Drop down"
+                      }
+                    }
+                  ],
+                  "answerOption": [
+                    {
+                      "valueCoding": {
+                        "code": "373066001",
+                        "display": "Yes",
+                        "system": "http://snomed.info/sct"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "373067005",
+                        "display": "No",
+                        "system": "http://snomed.info/sct"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "261665006",
+                        "display": "Unknown",
+                        "system": "http://snomed.info/sct"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Family History of Diabetes",
+      "type": "group",
+      "linkId": "4.0.0",
+      "item": [
+        {
+          "linkId": "4.1.0",
+          "type": "group",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext",
+              "valueExpression": {
+                "language": "application/x-fhir-query",
+                "expression": "Observation",
+                "name": "familyHistory"
+              }
+            }
+          ],
+          "item": [
+            {
+              "linkId": "4.1.1",
+              "type": "group",
+              "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
+              "item": [
+                {
+                  "linkId": "family-history-diabetes",
+                  "text": "Does the patient's family have a history of diabetes?",
+                  "type": "choice",
+                  "required": true,
+                  "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept.coding",
+                  "code": [
+                    {
+                      "system": "http://snomed.info/sct",
+                      "code": "276361009"
+                    }
+                  ],
+                  "extension": [
+                    {
+                      "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://hl7.org/fhir/questionnaire-item-control",
+                            "code": "drop-down",
+                            "display": "Drop down"
+                          }
+                        ],
+                        "text": "Drop down"
+                      }
+                    }
+                  ],
+                  "answerOption": [
+                    {
+                      "valueCoding": {
+                        "code": "Y",
+                        "display": "Yes"
+                      }
+                    },
+                    {
+                      "valueCoding": {
+                        "code": "N",
+                        "display": "No"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

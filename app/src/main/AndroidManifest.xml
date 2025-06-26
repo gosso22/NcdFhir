@@ -17,6 +17,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NcdFhirApplication"
         tools:targetApi="31">
+        <profileable android:shell="true" />
+
         <activity
             android:name=".ui.profile.PatientProfileView"
             android:exported="false"
@@ -32,6 +34,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.screening.QuestionnaireHostActivity" />
     </application>
 
 </manifest>

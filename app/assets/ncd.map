@@ -1,0 +1,37 @@
+map "https://fhir.d-tree.org/StructureMap" = "ScreenerExtractionMap"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" as source
+uses "http://hl7.org/fhir/StructureDefinition/Encounter" as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" as target
+
+imports "http://hl7.org/fhir/uv/sdc/StructureMap/QuestionnaireResponseToEncounterAndObservation"
+
+group ScreenerExtraction(source qr : QuestionnaireResponse, target encounter : Encounter) {
+
+  qr -> encounter.status = 'finished' "r_encounter_status";
+  qr.authored -> encounter.period.start r_encounter_start;
+
+  qr.item as group then ExtractObservations(group, encounter) "r_obs_item";
+}
+
+group ExtractObservations(source groupItem, target encounter) {
+  groupItem.item as item where item.linkId = 'patientAge' -> createObservation(item, encounter, '105727008') "r_obs_patient_age";
+  groupItem.item as item where item.linkId = 'bmi' -> createObservation(item, encounter, '60621009') "r_obs_bmi";
+  groupItem.item as item where item.linkId = 'waistCircumference' -> createObservation(item, encounter, '276361009') "r_obs_waist_circumference";
+
+  groupItem.item as subGroup then ExtractObservations(subGroup, encounter) "r_obs_subgroup";
+}
+
+group createObservation(source item, target encounter, source code) {
+  item.answer as answer -> obs then {
+    answer -> obs.status = 'final' "r_obs_status";
+    answer -> obs.code = coding("http://snomed.info/sct", code) "r_obs_code";
+    answer -> obs.subject = encounter.subject "r_obs_subject";
+    answer -> obs.effectiveDateTime = encounter.period.start "r_obs_effective_date_time";
+    answer.valueCoding as vc -> obs.value = vc "valueCodeableConcept" "r_value_codeable_concept";
+    answer.valueDecimal as dec -> obs.value = dec "valueQuantity" "r_value_quantity";
+    answer.valueInteger as integer -> obs.value = integer "valueInteger" "r_value_integer";
+
+    encounter -> obs.encounter = encounter "r_obs_encounter";
+  };
+}

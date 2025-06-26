@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -34,6 +35,7 @@ import com.healthtracker.ncdcare.R
 import com.healthtracker.ncdcare.databinding.FragmentPatientListViewBinding
 import com.healthtracker.ncdcare.ui.profile.PatientProfileView
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Patient
 import kotlin.jvm.java
 
 /**
@@ -58,6 +60,10 @@ class PatientListFragment : Fragment() {
     private val searchResultsAdapter = PatientItemRecyclerViewAdapter()
     private val viewModel: PatientListViewModel by viewModels()
 
+    private var isLoading = false
+    private var currentPage = 1
+    private var pageSize = 50
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -77,7 +83,10 @@ class PatientListFragment : Fragment() {
         initSearchView()
         initMenu()
 
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.patientList.layoutManager = layoutManager
         binding.patientList.adapter = patientAdapter
+        setupScrollListener(layoutManager)
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.loadingContainer.visibility = if (isLoading) View.VISIBLE else View.GONE
@@ -88,14 +97,16 @@ class PatientListFragment : Fragment() {
         }
 
         viewModel.liveSearchedPatients.observe(viewLifecycleOwner) { searchedPatients ->
-            patientAdapter.submitList(searchedPatients)
-            searchResultsAdapter.submitList(searchedPatients)
+            if (currentPage == 1) patientAdapter.submitList(searchedPatients.toMutableList())
+            else patientAdapter.appendList(searchedPatients)
 
+            searchResultsAdapter.submitList(searchedPatients)
             if (this::noResultsTextView.isInitialized) {
                 val searchTerm = viewModel.currentSearchTerm.value ?: ""
                 val showNoResults = searchTerm.isNotEmpty() && searchedPatients.isEmpty()
                 noResultsTextView.visibility = if (showNoResults) View.VISIBLE else View.GONE
             }
+            isLoading = false
         }
 
         // Observe the current search term and update the search view
@@ -114,21 +125,60 @@ class PatientListFragment : Fragment() {
         }
 
         patientAdapter.setOnItemClickListener { patient ->
-            val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
-                putExtra(PatientProfileView.EXTRA_NAME, patient)
-            }
-            startActivity(intent)
+            navigateToScreening(patient)
         }
 
-        searchResultsAdapter.apply {
-            setOnItemClickListener { patient ->
-                val intent = Intent(requireContext(), PatientProfileView::class.java).apply {
-                    putExtra(PatientProfileView.EXTRA_NAME, patient)
-                }
-                startActivity(intent)
+        searchResultsAdapter.setOnItemClickListener { patient ->
+            requireActivity().runOnUiThread {
+                navigateToScreening(patient)
             }
         }
+
+        loadPatients(currentPage)
     }
+
+    private fun setupScrollListener(layoutManager: LinearLayoutManager) {
+        binding.patientList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                if (!isLoading && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount &&
+                    firstVisibleItemPosition >= 0
+                ) {
+                    currentPage++
+                    loadPatients(currentPage)
+                }
+            }
+        })
+    }
+
+    private fun loadPatients(page: Int) {
+        val offset = (page - 1) * pageSize
+        Log.d("PatientListFragment", "Loading patients from offset $offset with page size $pageSize")
+        viewModel.searchPatientsPaged(offset, pageSize)
+    }
+
+    private fun navigateToScreening(patient: Patient) {
+        val navController = findNavController()
+        val currentDestinationId = navController.currentDestination?.id
+
+        Log.d("NavigationDebug", "Attempting to navigate from $currentDestinationId")
+
+        if (currentDestinationId == R.id.patientProfileFragment || currentDestinationId == R.id.nav_home) {
+            if (this::searchView.isInitialized) {
+                searchView.hide()
+                searchView.editText.setText("")
+            }
+            val action = PatientListFragmentDirections.actionPatientListFragmentToPatientProfileFragment(patient)
+            navController.navigate(action)
+        } else {
+            Log.e("NavigationError", "Invalid navigation attempt from $currentDestinationId")
+        }
+    }
+
 
     private fun handleSyncJobStatus(syncJobStatus: CurrentSyncJobStatus) {
         // Add code to display Toast when sync job  is complete
@@ -136,15 +186,20 @@ class PatientListFragment : Fragment() {
             is CurrentSyncJobStatus.Enqueued -> {
                 Log.d("Sync", "Sync Job Enqueued")
             }
+
             is CurrentSyncJobStatus.Running -> {
                 Log.d("Sync", "Sync Job Running")
             }
+
             is CurrentSyncJobStatus.Failed -> {
                 Log.e("Sync", "Sync Job Failed")
             }
+
             is CurrentSyncJobStatus.Succeeded -> {
                 Toast.makeText(requireContext(), "Sync Finished", Toast.LENGTH_SHORT).show()
-                viewModel.searchPatientsByName("")
+                currentPage = 1
+                loadPatients(currentPage)
+                //viewModel.searchPatientsByName("")
             }
 
             else -> {
@@ -209,7 +264,8 @@ class PatientListFragment : Fragment() {
                 setPadding(16, 64, 16, 16)
             }
 
-            val searchContentContainer = searchView.findViewById<ViewGroup>(com.google.android.material.R.id.open_search_view_content_container)
+            val searchContentContainer =
+                searchView.findViewById<ViewGroup>(com.google.android.material.R.id.open_search_view_content_container)
             searchContentContainer.addView(searchResultsRecyclerView)
             searchContentContainer.addView(noResultsTextView)
 
@@ -219,7 +275,8 @@ class PatientListFragment : Fragment() {
                     val query = textView.text.toString()
                     viewModel.searchPatientsByName(query)
                     // Hide keyboard after search
-                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    val imm =
+                        requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(textView.windowToken, 0)
                     return@setOnEditorActionListener true
                 }
@@ -247,12 +304,15 @@ class PatientListFragment : Fragment() {
                     SearchView.TransitionState.SHOWING -> {
                         // SearchView is being shown
                     }
+
                     SearchView.TransitionState.SHOWN -> {
                         // SearchView is fully visible
                     }
+
                     SearchView.TransitionState.HIDING -> {
                         // SearchView is being hidden
                     }
+
                     SearchView.TransitionState.HIDDEN -> {
                         // SearchView is fully hidden
                         viewModel.searchPatientsByName("")
@@ -282,5 +342,11 @@ class PatientListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    fun PatientItemRecyclerViewAdapter.appendList(newPatients: List<Patient>) {
+        val currentList = this.currentList.toMutableList()
+        currentList.addAll(newPatients)
+        this.submitList(currentList)
     }
 }
