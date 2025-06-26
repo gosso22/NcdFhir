@@ -1,7 +1,6 @@
 package com.healthtracker.ncdcare.ui.screening
 
 import android.app.Application
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -14,8 +13,6 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.healthtracker.ncdcare.application.NcdFhirApplication
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import java.math.BigDecimal
 import java.util.UUID
 import kotlinx.coroutines.launch
@@ -34,6 +31,9 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.RiskAssessment
 import org.hl7.fhir.r4.model.codesystems.RiskProbability
 import androidx.core.net.toUri
+import com.google.android.fhir.datacapture.mapping.StructureMapExtractionContext
+import org.hl7.fhir.r4.model.Task
+import org.hl7.fhir.r4.utils.StructureMapUtilities
 
 /** ViewModel for screener questionnaire screen {@link ScreenerEncounterFragment}. */
 class ScreeningViewModel(application: Application, private val state: SavedStateHandle) :
@@ -76,15 +76,23 @@ class ScreeningViewModel(application: Application, private val state: SavedState
                 .newJsonParser()
                 .parseResource(questionnaireJson) as Questionnaire
 
+            val map = readFileFromAssets("screening-ncd.map")
+
             Log.d("ScreeningViewModel", "QuestionnaireResponse: ${questionnaireResource.toString()}")
-            val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
+            val bundle = ResourceMapper.extract(
+                questionnaireResource,
+                questionnaireResponse,
+                StructureMapExtractionContext {_, worker ->
+                    StructureMapUtilities(worker).parse(map, "")
+                }
+            )
             val subjectReference = Reference("Patient/$patientId")
             val encounterId = generateUuid()
             if (isRequiredFieldMissing(bundle)) {
                 isResourcesSaved.value = false
                 return@launch
             }
-            saveResources(bundle, subjectReference, encounterId)
+            saveResources(bundle, subjectReference, encounterId, Reference(patientId))
             generateRiskAssessmentResource(bundle, subjectReference, encounterId)
             isResourcesSaved.value = true
         }
@@ -93,7 +101,8 @@ class ScreeningViewModel(application: Application, private val state: SavedState
     private suspend fun saveResources(
         bundle: Bundle,
         subjectReference: Reference,
-        encounterId: String
+        encounterId: String,
+        patientId: Reference
     ) {
         val encounterReference = Reference("Encounter/$encounterId")
         bundle.entry.forEach {
@@ -117,6 +126,11 @@ class ScreeningViewModel(application: Application, private val state: SavedState
                 is Encounter -> {
                     resource.subject = subjectReference
                     resource.id = encounterId
+                    saveResourceToDatabase(resource)
+                }
+                is Task -> {
+                    resource.`for` = subjectReference
+                    resource.reasonReference = Reference("Encounter/$encounterId")
                     saveResourceToDatabase(resource)
                 }
             }

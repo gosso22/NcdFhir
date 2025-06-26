@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +36,7 @@ class ScreeningFragment : Fragment() {
 
     private val args: ScreeningFragmentArgs by navArgs()
     private val viewModel: ScreeningViewModel by viewModels()
+    private var progressBar: ProgressBar? = null
 
     companion object {
         const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
@@ -46,10 +48,16 @@ class ScreeningFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val progressBar = view.findViewById<ProgressBar>(R.id.progress_bar_loading_questionnaire)
+        progressBar = view.findViewById<ProgressBar>(R.id.progress_bar_loading_questionnaire)
         progressBar?.visibility = View.VISIBLE
 
         onBackPressed()
+
+        viewModel.isResourcesSaved.observe(viewLifecycleOwner) { saved ->
+            if (saved) {
+                NavHostFragment.findNavController(this).navigateUp()
+            }
+        }
 
         childFragmentManager.setFragmentResultListener(SUBMIT_REQUEST_KEY, viewLifecycleOwner) { _, _ ->
             onSubmitQuestionnaireClick()
@@ -146,6 +154,8 @@ class ScreeningFragment : Fragment() {
         setUpActionBar()
     }
     private fun onSubmitQuestionnaireClick() {
+        progressBar?.visibility = View.VISIBLE
+        Toast.makeText(requireActivity(), "Submitting questionnaire, please wait ...", Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             val questionnaireFragment =
                 childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
