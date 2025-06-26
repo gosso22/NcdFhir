@@ -9,12 +9,8 @@
   ],
   "extension": [
     {
-      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext",
-      "valueExpression": {
-        "language": "application/x-fhir-query",
-        "expression": "Encounter",
-        "name": "encounter"
-      }
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap",
+      "valueCanonical": "https://fhir.d-tree.org/StructureMap/ScreenerExtractionMap"
     }
   ],
   "item": [
@@ -125,10 +121,62 @@
               "code": "60621009"
             }
           ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ],
+                "text": "Drop down"
+              }
+            }
+          ],
           "text": "Please specify the patient's BMI (Kg/m²)?",
-          "type": "decimal",
+          "type": "choice",
           "required": true,
-          "answerValueSet": "http://hl7belgium.org/profiles/fhir/manzana/ValueSet/vs-findRisc-screening-bmi"
+          "answerOption": [
+            {
+              "valueCoding": {
+                "code": "less-than-25",
+                "display": "Lower than 25 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 0
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "25-30",
+                "display": "25-30 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 2
+                  }
+                ]
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "higher-than-30",
+                "display": "Higher than 30 Kg/m²",
+                "extension": [
+                  {
+                    "url": "http://example.org/fhir/StructureDefinition/findrisc-points",
+                    "valueInteger": 3
+                  }
+                ]
+              }
+            }
+          ]
         },
         {
           "linkId": "waistCircumference",
@@ -216,13 +264,13 @@
                   "answerOption": [
                     {
                       "valueCoding": {
-                        "code": "Y",
+                        "code": "yes",
                         "display": "Yes"
                       }
                     },
                     {
                       "valueCoding": {
-                        "code": "N",
+                        "code": "no",
                         "display": "No"
                       }
                     }
