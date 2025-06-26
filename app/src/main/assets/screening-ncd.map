@@ -1,0 +1,137 @@
+map "https://fhir.d-tree.org/StructureMap/ScreenerExtractionMap" = "ScreenerExtractionMap"
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" as target
+uses "http://hl7.org/fhir/StructureDefinition/Encounter" as target
+uses "http://hl7.org/fhir/StructureDefinition/Observation" as target
+
+group Main(source src: QuestionnaireResponse, target bundle: Bundle) {
+    src->bundle.id = uuid(),
+    bundle.type = "collection" then  {
+        src->bundle.entry as entry,
+            entry.resource = create("Encounter") as encounter,
+            encounter.id = uuid(),
+            encounter.class = c("http://terminology.hl7.org/CodeSystem/v3-ActCode", "HH", "NCD Home Visit"),
+            encounter.status = "finished",
+            encounter.subject = create("Reference") as subj_ref, subj_ref.reference = "Patient/11223", subj_ref.type = "Patient" then {
+                src then ExtractPatientAnthropometric(src, bundle, encounter) "r_create_encounter";
+            } "r_enc_id";
+    } "r_bundle_data";
+}
+
+group ExtractPatientAnthropometric(source src: QuestionnaireResponse, target bundle: Bundle, target encounter: Encounter) {
+    src.item as page where (linkId='1.0.0') then {
+        page.item as patientAge where (linkId='patientAge') then {
+            src -> bundle.entry as entry,
+                entry.resource = create("Observation") as age_obs then {
+                    src -> age_obs.id = uuid(),
+                        age_obs.code = cc("http://snomed.info/sct", "397669002", "age"),
+                        age_obs.category = cc("http://hl7.org/fhir/ValueSet/observation-category", "survey"),
+                        age_obs.effective = evaluate(src, now()),
+                        age_obs.value = evaluate(patientAge, $this.answer.value.code) "r_age_obs_value";
+                } "r_obs_age";
+        } "r_age";
+        page.item as bmiItem where (linkId='bmi') then {
+            src -> bundle.entry as entry,
+                entry.resource = create("Observation") as bmi_obs then {
+                    src -> bmi_obs.id = uuid(),
+                        bmi_obs.code = cc("http://loinc.org", "39156-5", "Body mass index (BMI) [Ratio]"),
+                        bmi_obs.category = cc("http://terminology.hl7.org/CodeSystem/observation-category", "vital-signs", "Vital Signs"),
+                        bmi_obs.effective = evaluate(src, now()),
+                        bmi_obs.value = evaluate(bmiItem, $this.answer.value.code) then {
+                            src then ExtractMedicalHistory(src, bundle, encounter) "create_obs_med_hist";
+                        } "r_page2_data";
+                } "r_obs_bmi";
+        } "r_bmi";
+    } "r_page";
+}
+
+group ExtractMedicalHistory(source src: QuestionnaireResponse, target bundle: Bundle, target encounter: Encounter) {
+    src.item as page where (linkId='2.0.0') then {
+        page.item as questItem where (linkId='2.1.0') then {
+            questItem.item as medHistHighBPItem where (linkId='2.2.1') then {
+                medHistHighBPItem.item as histHighBloodPressure where (linkId='medication-highBloodPressure') then {
+                    src -> bundle.entry as entry,
+                        entry.resource = create("Observation") as high_bp_hist then {
+                            src -> high_bp_hist.id = uuid(),
+                                high_bp_hist.code = cc("http://d-tree.dev/codes", "use-high-bp-medications", "using high blood pressure meds"),
+                                high_bp_hist.category = cc("http://hl7.org/fhir/ValueSet/observation-category", "survey"),
+                                high_bp_hist.effective = evaluate(src, now()),
+                                high_bp_hist.value = evaluate(histHighBloodPressure, $this.answer.value.code) "r_age_obs_value";
+                        } "r_obs_high_bp_hist";
+                } "r_med_hist_high_bp_item";
+            } "r_questIt";
+        } "r_hbp_hist";
+        page.item as questItem where (linkId='2.2.0') then {
+            questItem.item as medHistHighBPItem where (linkId='2.1.1') then {
+                medHistHighBPItem.item as histHighBloodGC where (linkId='history-highBloodGlucose') then {
+                    src -> bundle.entry as entry,
+                        entry.resource = create("Observation") as high_b_gc_hist then {
+                            src -> high_b_gc_hist.id = uuid(),
+                                high_b_gc_hist.code = cc("http://d-tree.dev/codes", "has-history-high-blood-glucose", "has history high blood glucose"),
+                                high_b_gc_hist.category = cc("http://hl7.org/fhir/ValueSet/observation-category", "survey"),
+                                high_b_gc_hist.effective = evaluate(src, now()),
+                                high_b_gc_hist.value = evaluate(histHighBloodGC, $this.answer.value.code) then {
+                                    src then ExtractPatientLifestyleFactor(src, bundle, encounter) "create_obs_lifestyle_factor";
+                                }"r_page3_data";
+                        } "r_obs_high_b_gc_hist";
+                } "r_med_hist_high_gc_item";
+            } "r_bgc_questIt";
+        } "r_hb_gc_hist";
+    } "r_page";
+}
+
+group ExtractPatientLifestyleFactor(source src: QuestionnaireResponse, target bundle: Bundle, target encounter: Encounter) {
+    src.item as page where (linkId='3.0.0') then {
+        page.item as physicalActivity where (linkId='physical-activity') then {
+            src -> bundle.entry as entry,
+                entry.resource = create("Observation") as physical_activity_obs then {
+                    src -> physical_activity_obs.id = uuid(),
+                        physical_activity_obs.code = cc("http://d-tree.dev/codes", "physical-activity", "physical activity"),
+                        physical_activity_obs.category = cc("http://hl7.org/fhir/ValueSet/observation-category", "survey"),
+                        physical_activity_obs.effective = evaluate(src, now()),
+                        physical_activity_obs.value = evaluate(physicalActivity, $this.answer.value.code) "r_physical_activity_obs_value";
+                } "r_obs_physicalActivity";
+        } "r_physicalActivity";
+        page.item as questItem where (linkId='3.9.0') then {
+            questItem.item as dailyConsumeVegIte where (linkId='3.9.1') then {
+                dailyConsumeVegIte.item as dailyConsumeVeg where (linkId='daily-consume-veg-fruit') then {
+                    src -> bundle.entry as entry,
+                        entry.resource = create("Observation") as daily_consume_veg_fruit then {
+                            src -> daily_consume_veg_fruit.id = uuid(),
+                                daily_consume_veg_fruit.code = cc("http://d-tree.dev/codes", "has-history-high-blood-glucose", "has history high blood glucose"),
+                                daily_consume_veg_fruit.category = cc("http://hl7.org/fhir/ValueSet/observation-category", "survey"),
+                                daily_consume_veg_fruit.effective = evaluate(src, now()),
+                                daily_consume_veg_fruit.value = evaluate(dailyConsumeVeg, $this.answer.value.code),
+                                create('Task') as task then {
+                                    src then CreateTaskWithMeta(src, bundle, task) "create_obs_lifestyle_factor";
+                                }"r_page3_data";
+                        } "r_obs_daily_consume_veg_fruit";
+                } "r_daily_consume_veg_fruit_item";
+            } "r_daily_consume_veg_fruit_questIt";
+        } "r_daily_consume_veg_fruit";
+    } "r_page";
+}
+
+group CreateTaskWithMeta(source src: QuestionnaireResponse, target bundle: Bundle, target task: Task) {
+    src->task.id = uuid(),
+        bundle.entry as entry,
+        entry.resource = task then {
+            src-> task.status = "ready",
+                task.intent = "plan",
+                task.priority = "routine",
+                task.description = evaluate("taskDescription", $this.value),
+                task.authoredOn = evaluate(src, now()) as current_date_time,
+                task.code = cc("http://hl7.org/fhir/ValueSet/task-code", "fulfill", "Referral to facility"),
+                task.lastModified = current_date_time then {
+                    src->task.identifier = create("Identifier")as taskIdentifier then {
+                        src->taskIdentifier.value = evaluate(task, $this.id) "r_task_identifier_value";
+                        src->taskIdentifier.use = "official" "r_task_identifier_use";
+                    }
+                    "r_task_identifier";
+                }
+                "r_task_data";
+
+        }
+        "r_create_task";
+}
