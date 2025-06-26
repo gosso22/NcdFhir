@@ -236,11 +236,13 @@ fun ProfileScaffold(patient: Patient?, onBackPressed: () -> Unit) {
                                 backgroundContext = coroutineContext,
                                 fileName = "screening-questionnaire.json"
                             )
+                            //val patientBaseEntityId = patient?.identifier?.filter { it.system == "baseEntityId" }!!.firstOrNull()!!.value
+                            val patientBaseEntityId = patient?.idPart
                             val action = PatientProfileFragmentDirections.actionPatientProfileToScreening(
                                 questionnaireTitleKey = context.getString(R.string.screening_questionnaire_title),
                                 questionnaireUriString = questionnaireUriString.toString(),
                                 questionnaireWithValidationJsonStringKey = null,
-                                patientId = patient?.id,
+                                patientId = patientBaseEntityId,
                             )
                             navController.navigate(action)
 

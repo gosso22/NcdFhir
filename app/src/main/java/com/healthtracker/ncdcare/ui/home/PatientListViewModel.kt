@@ -133,6 +133,7 @@ class PatientListViewModel(application: Application) : AndroidViewModel(applicat
                                 value = nameQuery
                             },
                         )
+                        count = 10
                     }
                         .filter { patient ->
                             !patient.resource.name.any { it.family?.contains("Family") == true }
@@ -144,6 +145,32 @@ class PatientListViewModel(application: Application) : AndroidViewModel(applicat
                 }
             } catch (e: Exception) {
                 _error.value = "Search failed: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun searchPatientsPaged(offset: Int, pageSize: Int) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                val fhirEngine = NcdFhirApplication.fhirEngine(getApplication())
+                val results = fhirEngine.search<Patient> {
+                    sort(Patient.GIVEN, Order.ASCENDING)
+                    from = offset
+                    count = pageSize
+                }.filterNot { patient ->
+                    patient.resource.name.any {
+                        it.family?.contains("Family") == true || it.family?.contains("0") == true
+                    }
+                }.map { it.resource }
+
+                liveSearchedPatients.value = results
+            } catch (e: Exception) {
+                _error.value = "Failed to load paged patients: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
