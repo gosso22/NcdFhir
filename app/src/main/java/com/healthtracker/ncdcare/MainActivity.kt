@@ -15,9 +15,12 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.NavigationUI
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import com.healthtracker.ncdcare.databinding.ActivityMainBinding
@@ -97,54 +100,17 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-        setupNavigation()
+        setupNavigationNew()
     }
 
-    private fun setupNavigation() {
-        val drawerLayout: DrawerLayout = binding.drawerLayout
-        val navView: NavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.nav_home, R.id.nav_screening
-            ), drawerLayout
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
+    private fun setupNavigationNew() {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
 
-        navView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_home -> {
-                    navController.navigate(R.id.nav_home)
-                    true
-                }
-                R.id.nav_screening -> {
-                    navController.navigate(R.id.nav_screening)
-                    true
-                }
-                R.id.nav_slideshow -> {
-                    lifecycleScope.launch {
-                        navController.navigate(
-                            MobileNavigationDirections.actionGlobalNavSlideshow(
-                                questionnaireTitleKey = "My Title",
-                                questionnaireJsonStringKey = getQuestionnaireJsonStringFromAssets(
-                                    context= this@MainActivity,
-                                    backgroundContext = coroutineContext,
-                                    fileName = "screening-questionnaire.json"
-                                ),
-                                questionnaireWithValidationJsonStringKey = null
-                            )
-                        )
-                    }
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                else -> false
-            }
+        val navController = navHostFragment.navController
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-            drawerLayout.closeDrawers()
-            true
-        }
-
+        NavigationUI.setupWithNavController(bottomNav, navController)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
