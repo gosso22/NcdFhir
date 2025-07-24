@@ -16,3 +16,4 @@ local.properties
 .idea
 .zencoder
 .kotlin/
+.kiro/

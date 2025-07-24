@@ -29,6 +29,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.search.SearchView
 import com.healthtracker.ncdcare.MainActivity
 import com.healthtracker.ncdcare.R
@@ -298,6 +299,8 @@ class PatientListFragment : Fragment() {
                 }
             }
 
+            val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
             // Handle search view state changes
             searchView.addTransitionListener { _, previousState, newState ->
                 when (newState) {
@@ -307,6 +310,7 @@ class PatientListFragment : Fragment() {
 
                     SearchView.TransitionState.SHOWN -> {
                         // SearchView is fully visible
+                        bottomNav.visibility = View.GONE
                     }
 
                     SearchView.TransitionState.HIDING -> {
@@ -315,6 +319,7 @@ class PatientListFragment : Fragment() {
 
                     SearchView.TransitionState.HIDDEN -> {
                         // SearchView is fully hidden
+                        bottomNav.visibility = View.VISIBLE
                         viewModel.searchPatientsByName("")
                         noResultsTextView.visibility = View.GONE
                     }

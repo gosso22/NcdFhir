@@ -24,4 +24,5 @@
     <string name="cancel_questionnaire_message">Are you sure you want to discard the answers?</string>
     <string name="record_gps_location">Record GPS Location</string>
     <string name="screening_questionnaire_title">Screening for NCD</string>
+    <string name="gender_icon_description">Gender Icon</string>
 </resources>
